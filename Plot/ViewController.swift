@@ -31,7 +31,6 @@ class ViewController: UIViewController {
         configureHostView()
         configureGraph()
         configureChart()
-//        configureLegend()
     }
     
     @objc func fireTimer(){
@@ -47,20 +46,16 @@ class ViewController: UIViewController {
         
         let location: NSInteger
         if self.currentIndex >= maxDataPoints {
-            print("#1")
             location = self.currentIndex - maxDataPoints + 2
         } else {
-            print("#2")
             location = 0
         }
         
         let range: NSInteger
         
         if location > 0 {
-            print("#3")
             range = location-1
         } else {
-            print("#4")
             range = 0
         }
         
@@ -70,9 +65,8 @@ class ViewController: UIViewController {
         CPTAnimation.animate(plotSpace, property: "xRange", from: oldRange, to: newRange, duration:0.3)
         self.currentIndex += 1;
         if(self.currentIndex % 30 == 0){
-            let point = Double.random(in: 70...90)
+            let point = Double.random(in: 75...85)
             self.plotData.append(point)
-            self.bpmText.text = "BPM: \(Int(point))"
         }
         else{
             var lastPoint:Double
@@ -80,11 +74,11 @@ class ViewController: UIViewController {
                 lastPoint = self.plotData.last!
             }
             else{
-                lastPoint = Double.random(in: 70...90)
-                self.bpmText.text = "BPM: \(Int(lastPoint))"
+                lastPoint = Double.random(in: 75...85)
             }
             self.plotData.append(Double.random(in: lastPoint-0.5...lastPoint+0.5))
         }
+       
         plot?.insertData(at: UInt(self.plotData.count-1), numberOfRecords: 1)
     }
     
@@ -95,18 +89,19 @@ class ViewController: UIViewController {
     }
     
     func configureGraph(){
+        
         let graph = CPTXYGraph(frame: hostView.bounds)
         graph.plotAreaFrame?.masksToBorder = false
         hostView.hostedGraph = graph
-        graph.backgroundColor = UIColor(red:0.08, green:0.22, blue:0.49, alpha:1.0).cgColor
+        graph.backgroundColor = UIColor.black.cgColor
 
         // 2 - Configure the graph
         //graph.apply(CPTTheme(named: CPTThemeName.plainWhiteTheme))
         //graph.fill = CPTFill(color: CPTColor.clear())
-        graph.paddingBottom = 10.0
-        graph.paddingLeft = 10.0
-        graph.paddingTop = 10.0
-        graph.paddingRight = 10.0
+        graph.paddingBottom = 40.0
+        graph.paddingLeft = 40.0
+        graph.paddingTop = 30.0
+        graph.paddingRight = 15.0
 
 
         // 3 - Set up styles
@@ -119,37 +114,48 @@ class ViewController: UIViewController {
         
         
 
-        let title = "Mindful Graph using CorePlot"
+        let title = "Real-time Graph"
         graph.title = title
         graph.titlePlotAreaFrameAnchor = .top
-        graph.titleDisplacement = CGPoint(x: 0.0, y: -16.0)
+        graph.titleDisplacement = CGPoint(x: 0.0, y: 0.0)
         
         let axisSet = graph.axisSet as! CPTXYAxisSet
+        
+        let axisTextStyle = CPTMutableTextStyle()
+        axisTextStyle.color = CPTColor.white()
+        axisTextStyle.fontName = "HelveticaNeue-Bold"
+        axisTextStyle.fontSize = 10.0
+        axisTextStyle.textAlignment = .center
+        let lineStyle = CPTMutableLineStyle()
+        lineStyle.lineColor = CPTColor.white()
+        lineStyle.lineWidth = 5
+        let gridLineStyle = CPTMutableLineStyle()
+        gridLineStyle.lineColor = CPTColor.gray()
+        gridLineStyle.lineWidth = 0.5
+       
 
         if let x = axisSet.xAxis {
-            let titleStyle = CPTMutableTextStyle()
-            titleStyle.color = CPTColor.white()
-            titleStyle.fontName = "HelveticaNeue-Bold"
-            titleStyle.fontSize = 8.0
-            titleStyle.textAlignment = .center
-            x.majorIntervalLength   = 10
+           
+            x.majorIntervalLength   = 20
             x.orthogonalPosition    = 5
             x.minorTicksPerInterval = 5
-            x.labelTextStyle = titleStyle
+            x.labelTextStyle = axisTextStyle
+            //x.majorGridLineStyle = gridLineStyle
+            x.axisLineStyle = lineStyle
             x.axisConstraints = CPTConstraints(lowerOffset: 0.0)
             x.delegate = self
+            
         }
 
         if let y = axisSet.yAxis {
-            let titleStyle = CPTMutableTextStyle()
-            titleStyle.color = CPTColor.white()
-            titleStyle.fontName = "HelveticaNeue-Bold"
-            titleStyle.fontSize = 10.0
-            titleStyle.textAlignment = .center
+         
             y.majorIntervalLength   = 5
             y.minorTicksPerInterval = 5
             y.orthogonalPosition    = 2.0
-            y.labelTextStyle = titleStyle
+            y.labelTextStyle = axisTextStyle
+            y.alternatingBandFills = [CPTFill(color: CPTColor.init(componentRed: 255, green: 255, blue: 255, alpha: 0.03)),CPTFill(color: CPTColor.black())]
+
+            y.axisLineStyle = lineStyle
             y.axisConstraints = CPTConstraints(lowerOffset: 0.0)
             y.delegate = self
             
@@ -157,9 +163,9 @@ class ViewController: UIViewController {
 
         // 4 - Set up plot space
         let xMin = 0.0
-        let xMax = 120.0
-        let yMin = 60.0
-        let yMax = 100.0
+        let xMax = 100.0
+        let yMin = 65.0
+        let yMax = 95.0
         guard let plotSpace = graph.defaultPlotSpace as? CPTXYPlotSpace else { return }
         plotSpace.xRange = CPTPlotRange(locationDecimal: CPTDecimalFromDouble(xMin), lengthDecimal: CPTDecimalFromDouble(xMax - xMin))
         plotSpace.yRange = CPTPlotRange(locationDecimal: CPTDecimalFromDouble(yMin), lengthDecimal: CPTDecimalFromDouble(yMax - yMin))
@@ -176,10 +182,10 @@ class ViewController: UIViewController {
         let plotLineStile = CPTMutableLineStyle()
         plotLineStile.lineJoin = .round
         plotLineStile.lineCap = .round
-        plotLineStile.lineWidth = 1
+        plotLineStile.lineWidth = 2
         plotLineStile.lineColor = CPTColor.white()
         plot.dataLineStyle = plotLineStile
-        //plot.curvedInterpolationOption = .catmullRomChordal
+        plot.curvedInterpolationOption = .catmullCustomAlpha
         plot.interpolation = .curved
         plot.identifier = "mindful-graph" as NSCoding & NSCopying & NSObjectProtocol
 
@@ -202,23 +208,7 @@ extension ViewController: CPTScatterPlotDataSource, CPTScatterPlotDelegate {
     func scatterPlot(_ plot: CPTScatterPlot, plotSymbolWasSelectedAtRecord idx: UInt, with event: UIEvent) {
     }
 
-   /* func numbers(for plot: CPTPlot, field fieldEnum: UInt, recordIndexRange indexRange: NSRange) -> [Any]? {
-        print("xxxxxxx")
-        switch CPTScatterPlotField(rawValue: Int(fieldEnum))! {
-        case .X:
-            return xValues[index] as NSNumber
-
-        case .Y:
-            return yValues[indexRange] as NSNumber
-        }
-
-    } */
-
-   /* func symbols(for plot: CPTScatterPlot, recordIndexRange indexRange: NSRange) -> [CPTPlotSymbol]? {
-        return xValues
-    } */
-
-    func number(for plot: CPTPlot, field: UInt, record: UInt) -> Any? {
+     func number(for plot: CPTPlot, field: UInt, record: UInt) -> Any? {
         
        switch CPTScatterPlotField(rawValue: Int(field))! {
         
