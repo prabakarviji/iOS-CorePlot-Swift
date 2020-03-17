@@ -22,15 +22,24 @@ class ViewController: UIViewController {
     
     @IBOutlet var bpmText: UILabel!
     @IBOutlet var hostView: CPTGraphHostingView!
+    @IBOutlet var dataButton: UIView!
+    @IBOutlet var xValue: UILabel!
+    @IBOutlet var yValue: UILabel!
     override func viewDidLoad() {
         super.viewDidLoad()
+        let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
+        dataButton.addGestureRecognizer(tap)
         initPlot()
     }
     
     func initPlot(){
-        configureHostView()
+        configureGraphtView()
         configureGraph()
         configureChart()
+    }
+    @objc func handleTap(_ sender: UITapGestureRecognizer? = nil){
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(timeInterval: self.timeDuration, target: self, selector: #selector(fireTimer), userInfo: nil, repeats: true)
     }
     
     @objc func fireTimer(){
@@ -67,6 +76,7 @@ class ViewController: UIViewController {
         if(self.currentIndex % 30 == 0){
             let point = Double.random(in: 75...85)
             self.plotData.append(point)
+            
         }
         else{
             var lastPoint:Double
@@ -78,11 +88,13 @@ class ViewController: UIViewController {
             }
             self.plotData.append(Double.random(in: lastPoint-0.5...lastPoint+0.5))
         }
-       
+    
+        xValue.text = #"X: \#(String(format:"%.2f",Double(self.plotData.last!)))"#
+        yValue.text = #"Y: \#(UInt(self.currentIndex!)) Sec"#
         plot?.insertData(at: UInt(self.plotData.count-1), numberOfRecords: 1)
     }
     
-    func configureHostView(){
+    func configureGraphtView(){
         hostView.allowPinchScaling = false
         self.plotData.removeAll()
         self.currentIndex = 0
@@ -94,17 +106,13 @@ class ViewController: UIViewController {
         graph.plotAreaFrame?.masksToBorder = false
         hostView.hostedGraph = graph
         graph.backgroundColor = UIColor.black.cgColor
-
-        // 2 - Configure the graph
-        //graph.apply(CPTTheme(named: CPTThemeName.plainWhiteTheme))
-        //graph.fill = CPTFill(color: CPTColor.clear())
         graph.paddingBottom = 40.0
         graph.paddingLeft = 40.0
         graph.paddingTop = 30.0
         graph.paddingRight = 15.0
 
 
-        // 3 - Set up styles
+        //Set title for graph
         let titleStyle = CPTMutableTextStyle()
         titleStyle.color = CPTColor.white()
         titleStyle.fontName = "HelveticaNeue-Bold"
@@ -112,8 +120,6 @@ class ViewController: UIViewController {
         titleStyle.textAlignment = .center
         graph.titleTextStyle = titleStyle
         
-        
-
         let title = "Real-time Graph"
         graph.title = title
         graph.titlePlotAreaFrameAnchor = .top
@@ -135,33 +141,27 @@ class ViewController: UIViewController {
        
 
         if let x = axisSet.xAxis {
-           
             x.majorIntervalLength   = 20
-            x.orthogonalPosition    = 5
             x.minorTicksPerInterval = 5
             x.labelTextStyle = axisTextStyle
-            //x.majorGridLineStyle = gridLineStyle
+            x.minorGridLineStyle = gridLineStyle
             x.axisLineStyle = lineStyle
             x.axisConstraints = CPTConstraints(lowerOffset: 0.0)
             x.delegate = self
-            
         }
 
         if let y = axisSet.yAxis {
-         
             y.majorIntervalLength   = 5
             y.minorTicksPerInterval = 5
-            y.orthogonalPosition    = 2.0
+            y.minorGridLineStyle = gridLineStyle
             y.labelTextStyle = axisTextStyle
             y.alternatingBandFills = [CPTFill(color: CPTColor.init(componentRed: 255, green: 255, blue: 255, alpha: 0.03)),CPTFill(color: CPTColor.black())]
-
             y.axisLineStyle = lineStyle
             y.axisConstraints = CPTConstraints(lowerOffset: 0.0)
             y.delegate = self
-            
         }
 
-        // 4 - Set up plot space
+        // Set plot space
         let xMin = 0.0
         let xMax = 100.0
         let yMin = 65.0
@@ -169,16 +169,11 @@ class ViewController: UIViewController {
         guard let plotSpace = graph.defaultPlotSpace as? CPTXYPlotSpace else { return }
         plotSpace.xRange = CPTPlotRange(locationDecimal: CPTDecimalFromDouble(xMin), lengthDecimal: CPTDecimalFromDouble(xMax - xMin))
         plotSpace.yRange = CPTPlotRange(locationDecimal: CPTDecimalFromDouble(yMin), lengthDecimal: CPTDecimalFromDouble(yMax - yMin))
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(timeInterval: self.timeDuration, target: self, selector: #selector(fireTimer), userInfo: nil, repeats: true)
         
     }
     
     func configureChart(){
-       // 1 - Set up the plot
         plot = CPTScatterPlot()
-
-        // 2 - Set up style
         let plotLineStile = CPTMutableLineStyle()
         plotLineStile.lineJoin = .round
         plotLineStile.lineCap = .round
@@ -188,8 +183,6 @@ class ViewController: UIViewController {
         plot.curvedInterpolationOption = .catmullCustomAlpha
         plot.interpolation = .curved
         plot.identifier = "mindful-graph" as NSCoding & NSCopying & NSObjectProtocol
-
-        // 3- Add plots to graph
         guard let graph = hostView.hostedGraph else { return }
         plot.dataSource = (self as CPTPlotDataSource)
         plot.delegate = (self as CALayerDelegate)
@@ -201,7 +194,6 @@ class ViewController: UIViewController {
 
 extension ViewController: CPTScatterPlotDataSource, CPTScatterPlotDelegate {
     func numberOfRecords(for plot: CPTPlot) -> UInt {
-        // number of points
         return UInt(self.plotData.count)
     }
 
