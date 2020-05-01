@@ -1,10 +1,7 @@
-//
 //  ViewController.swift
 //  Plot
-//
 //  Created by Prabakaran Marimuthu on 11/02/20.
 //  Copyright © 2020 Prabakaran Marimuthu. All rights reserved.
-//
 
 import UIKit
 import CorePlot
@@ -25,6 +22,7 @@ class ViewController: UIViewController {
     @IBOutlet var dataButton: UIView!
     @IBOutlet var xValue: UILabel!
     @IBOutlet var yValue: UILabel!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         let tap = UITapGestureRecognizer(target: self, action: #selector(self.handleTap(_:)))
@@ -34,9 +32,10 @@ class ViewController: UIViewController {
     
     func initPlot(){
         configureGraphtView()
-        configureGraph()
-        configureChart()
+        configureGraphAxis()
+        configurePlot()
     }
+    
     @objc func handleTap(_ sender: UITapGestureRecognizer? = nil){
         timer?.invalidate()
         timer = Timer.scheduledTimer(timeInterval: self.timeDuration, target: self, selector: #selector(fireTimer), userInfo: nil, repeats: true)
@@ -70,8 +69,9 @@ class ViewController: UIViewController {
         
         let oldRange =  CPTPlotRange(locationDecimal: CPTDecimalFromDouble(Double(range)), lengthDecimal: CPTDecimalFromDouble(Double(maxDataPoints-2)))
         let newRange =  CPTPlotRange(locationDecimal: CPTDecimalFromDouble(Double(location)), lengthDecimal: CPTDecimalFromDouble(Double(maxDataPoints-2)))
-        
+    
         CPTAnimation.animate(plotSpace, property: "xRange", from: oldRange, to: newRange, duration:0.3)
+        
         self.currentIndex += 1;
         if(self.currentIndex % 30 == 0){
             let point = Double.random(in: 75...85)
@@ -88,7 +88,6 @@ class ViewController: UIViewController {
             }
             self.plotData.append(Double.random(in: lastPoint-0.5...lastPoint+0.5))
         }
-    
         xValue.text = #"X: \#(String(format:"%.2f",Double(self.plotData.last!)))"#
         yValue.text = #"Y: \#(UInt(self.currentIndex!)) Sec"#
         plot?.insertData(at: UInt(self.plotData.count-1), numberOfRecords: 1)
@@ -100,7 +99,7 @@ class ViewController: UIViewController {
         self.currentIndex = 0
     }
     
-    func configureGraph(){
+    func configureGraphAxis(){
         
         let graph = CPTXYGraph(frame: hostView.bounds)
         graph.plotAreaFrame?.masksToBorder = false
@@ -110,17 +109,17 @@ class ViewController: UIViewController {
         graph.paddingLeft = 40.0
         graph.paddingTop = 30.0
         graph.paddingRight = 15.0
-
+        
 
         //Set title for graph
         let titleStyle = CPTMutableTextStyle()
         titleStyle.color = CPTColor.white()
         titleStyle.fontName = "HelveticaNeue-Bold"
-        titleStyle.fontSize = 16.0
+        titleStyle.fontSize = 20.0
         titleStyle.textAlignment = .center
         graph.titleTextStyle = titleStyle
-        
-        let title = "Real-time Graph"
+
+        let title = "CorePlot"
         graph.title = title
         graph.titlePlotAreaFrameAnchor = .top
         graph.titleDisplacement = CGPoint(x: 0.0, y: 0.0)
@@ -172,7 +171,7 @@ class ViewController: UIViewController {
         
     }
     
-    func configureChart(){
+    func configurePlot(){
         plot = CPTScatterPlot()
         let plotLineStile = CPTMutableLineStyle()
         plotLineStile.lineJoin = .round
