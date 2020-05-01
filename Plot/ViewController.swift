@@ -73,21 +73,8 @@ class ViewController: UIViewController {
         CPTAnimation.animate(plotSpace, property: "xRange", from: oldRange, to: newRange, duration:0.3)
         
         self.currentIndex += 1;
-        if(self.currentIndex % 30 == 0){
-            let point = Double.random(in: 75...85)
-            self.plotData.append(point)
-            
-        }
-        else{
-            var lastPoint:Double
-            if((self.plotData.last) != nil){
-                lastPoint = self.plotData.last!
-            }
-            else{
-                lastPoint = Double.random(in: 75...85)
-            }
-            self.plotData.append(Double.random(in: lastPoint-0.5...lastPoint+0.5))
-        }
+        let point = Double.random(in: 75...85)
+        self.plotData.append(point)
         xValue.text = #"X: \#(String(format:"%.2f",Double(self.plotData.last!)))"#
         yValue.text = #"Y: \#(UInt(self.currentIndex!)) Sec"#
         plot?.insertData(at: UInt(self.plotData.count-1), numberOfRecords: 1)
